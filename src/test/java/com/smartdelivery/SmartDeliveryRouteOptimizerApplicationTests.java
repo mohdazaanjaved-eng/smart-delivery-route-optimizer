@@ -1,6 +1,7 @@
 package com.smartdelivery;
 
 import com.smartdelivery.repository.UserRepository;
+import com.smartdelivery.repository.DeliveryRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -13,6 +14,9 @@ class SmartDeliveryRouteOptimizerApplicationTests {
 
     @MockitoBean
     private UserRepository userRepository;
+
+    @MockitoBean
+    private DeliveryRepository deliveryRepository;
 
     @Test
     void contextLoads() {
