@@ -178,33 +178,59 @@ The optimized delivery route is displayed using:
 
 ---
 
-## 📸 Screenshots
+# 📸 Screenshots
 
-### Login
+## Login
+
+Displays the login page where users authenticate.
 
 ![Login](screenshots/login.png)
 
-### Register
+---
+
+## Register
+
+Allows new users to create an account.
 
 ![Register](screenshots/register.png)
 
-### Dashboard
+---
+
+## Dashboard
+
+Displays live delivery statistics fetched from the backend.
 
 ![Dashboard](screenshots/dashboard.png)
 
-### Deliveries
+---
+
+## Deliveries
+
+Shows all deliveries stored in the database.
 
 ![Deliveries](screenshots/deliveries.png)
 
-### Add Delivery
+---
+
+## Add Delivery
+
+Allows administrators to create a new delivery.
 
 ![Add Delivery](screenshots/add-delivery.png)
 
-### Route Optimizer
+---
+
+## Route Optimizer
+
+Displays the optimized delivery sequence generated using Dijkstra's Algorithm.
 
 ![Route Optimizer](screenshots/route-optimizer.png)
 
-### Interactive Route Map
+---
+
+## Interactive Route Map
+
+Visualizes the optimized route using OpenStreetMap and React Leaflet.
 
 ![Route Map](screenshots/route-map.png)
 
