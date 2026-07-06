@@ -1,89 +1,216 @@
-﻿# Smart Delivery Route Optimizer
+﻿# 🚚 Smart Delivery Route Optimizer
 
-Production-oriented Spring Boot backend scaffold for a smart delivery route optimization system.
+A full-stack web application that optimizes delivery routes using Graph Theory and Dijkstra's Shortest Path Algorithm. The system helps delivery administrators manage deliveries, visualize optimized routes on an interactive map, and improve delivery efficiency.
 
-## Tech Stack
+---
 
-- Java 21
+## 📌 Features
+
+### 🔐 Authentication
+- User Registration
+- User Login
+- BCrypt Password Encryption
+- Spring Security Basic Authentication
+
+### 📦 Delivery Management
+- Add Delivery
+- View Deliveries
+- Update Delivery
+- Delete Delivery
+
+### 🗺 Route Optimization
+- Graph-based delivery network
+- Haversine Distance Calculation
+- Dijkstra's Shortest Path Algorithm
+- Optimized delivery sequence
+- Interactive OpenStreetMap visualization
+
+### 📊 Dashboard
+- Total Deliveries
+- Pending Deliveries
+- High Priority Deliveries
+- Completed Deliveries
+- Recent Deliveries
+
+---
+
+## 🛠 Tech Stack
+
+### Backend
+- Java 25
 - Spring Boot 3
-- Spring Web
-- Spring Data JPA
 - Spring Security
+- Spring Data JPA
+- Hibernate
 - MySQL
-- Jakarta Validation
-- Lombok
-- Maven Wrapper
+- Maven
 
-## Package Structure
+### Frontend
+- React 19
+- Vite
+- Tailwind CSS
+- Axios
+- React Router
+- Leaflet
+- OpenStreetMap
 
-```text
-com.smartdelivery
-├── config
-├── controller
-├── dto
-├── entity
-├── exception
-├── graph
-├── repository
-├── security
-├── service
-│   └── impl
-└── util
+---
+
+## 📂 Project Structure
+
+```
+Smart Delivery Route Optimizer
+│
+├── src/main/java
+│   ├── controller
+│   ├── service
+│   ├── repository
+│   ├── entity
+│   ├── graph
+│   ├── algorithm
+│   └── route
+│
+├── src
+│   ├── pages
+│   ├── components
+│   ├── services
+│   └── layouts
+│
+└── pom.xml
 ```
 
-## Prerequisites
+---
 
-- JDK 21 or newer
-- MySQL running locally or available through environment variables
+## 🚀 How to Run
 
-By default, the application expects MySQL at:
-
-```text
-jdbc:mysql://localhost:3306/smart_delivery_route_optimizer
-```
-
-Default username is `root` with an empty password. Override these values when needed:
-
-```powershell
-$env:SPRING_DATASOURCE_URL="jdbc:mysql://localhost:3306/smart_delivery_route_optimizer?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC"
-$env:SPRING_DATASOURCE_USERNAME="root"
-$env:SPRING_DATASOURCE_PASSWORD="your_password"
-```
-
-## Run
-
-On Windows:
-
-```powershell
-.\mvnw.cmd spring-boot:run
-```
-
-On macOS/Linux:
+### Backend
 
 ```bash
+git clone <repository-url>
+
+cd Smart Delivery Route Optimizer
+
 ./mvnw spring-boot:run
 ```
 
-The API will start on:
+Backend runs on
 
-```text
+```
 http://localhost:8080
 ```
 
-## Build
+---
 
-On Windows:
-
-```powershell
-.\mvnw.cmd clean package
-```
-
-On macOS/Linux:
+### Frontend
 
 ```bash
-./mvnw clean package
+npm install
+
+npm run dev
 ```
 
-## Current Scope
+Frontend runs on
 
-This repository currently contains the project foundation only. Business logic, route optimization algorithms, domain entities, APIs, persistence mappings, and security rules will be added in later iterations.
+```
+http://localhost:5173
+```
+
+---
+
+## 🗄 Database
+
+MySQL Database
+
+```
+smart_delivery_route_optimizer
+```
+
+---
+
+## REST APIs
+
+### Authentication
+
+```
+POST /api/auth/register
+POST /api/auth/login
+```
+
+### Deliveries
+
+```
+GET    /api/deliveries
+POST   /api/deliveries
+PUT    /api/deliveries/{id}
+DELETE /api/deliveries/{id}
+```
+
+### Graph
+
+```
+GET /api/graph
+```
+
+### Route Optimization
+
+```
+GET /api/routes/optimize
+```
+
+---
+
+## 🧠 Algorithms Used
+
+- Graph Data Structure
+- Haversine Distance Formula
+- Dijkstra's Shortest Path Algorithm
+
+---
+
+## 🗺 Interactive Map
+
+The optimized delivery route is displayed using:
+
+- OpenStreetMap
+- React Leaflet
+- Polyline visualization
+- Route markers
+
+---
+
+## 📸 Screenshots
+
+### Login
+
+![Login](screenshots/login.png)
+
+### Register
+
+![Register](screenshots/register.png)
+
+### Dashboard
+
+![Dashboard](screenshots/dashboard.png)
+
+### Deliveries
+
+![Deliveries](screenshots/deliveries.png)
+
+### Add Delivery
+
+![Add Delivery](screenshots/add-delivery.png)
+
+### Route Optimizer
+
+![Route Optimizer](screenshots/route-optimizer.png)
+
+### Interactive Route Map
+
+![Route Map](screenshots/route-map.png)
+
+## 👨‍💻 Author
+
+**Mohd Azaan Javed**
+
+GitHub:
+https://github.com/mohdazaanjaved-eng
