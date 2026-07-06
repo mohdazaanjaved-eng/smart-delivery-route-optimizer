@@ -16,7 +16,13 @@ export const authService = {
   login: async (credentials) => {
     try {
       const { data } = await httpClient.post('/api/auth/login', credentials);
-      localStorage.setItem(AUTH_USER_KEY, JSON.stringify(data));
+      localStorage.setItem(
+        AUTH_USER_KEY,
+        JSON.stringify({
+          ...data,
+          password: credentials.password,
+        }),
+      );
       return data;
     } catch (error) {
       throw normalizeAuthError(error);
