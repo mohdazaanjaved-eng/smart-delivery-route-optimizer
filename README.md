@@ -86,7 +86,7 @@ Smart Delivery Route Optimizer
 ### Backend
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/mohdazaanjaved-eng/smart-delivery-route-optimizer
 
 cd Smart Delivery Route Optimizer
 
