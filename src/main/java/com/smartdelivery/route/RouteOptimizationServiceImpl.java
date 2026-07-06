@@ -138,6 +138,8 @@ public class RouteOptimizationServiceImpl implements RouteOptimizationService {
                 .order(order)
                 .customer(delivery.getCustomerName())
                 .address(delivery.getDeliveryAddress())
+                .latitude(delivery.getLatitude())
+                .longitude(delivery.getLongitude())
                 .distanceFromPrevious(roundToTwoDecimals(distanceFromPrevious))
                 .build();
     }

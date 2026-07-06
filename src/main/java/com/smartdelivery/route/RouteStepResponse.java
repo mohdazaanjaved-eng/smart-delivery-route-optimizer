@@ -10,6 +10,8 @@ public record RouteStepResponse(
         int order,
         String customer,
         String address,
+        Double latitude,
+        Double longitude,
         double distanceFromPrevious
 ) {
 }

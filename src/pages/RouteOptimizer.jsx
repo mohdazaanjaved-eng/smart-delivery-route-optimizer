@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import RouteCard from '../components/RouteCard.jsx';
+import RouteMap from '../components/RouteMap.jsx';
 import StatsCard from '../components/StatsCard.jsx';
 import { routeService } from '../services/routeService';
 
@@ -72,17 +73,20 @@ function RouteOptimizer() {
           {hasOptimized ? 'No pending route stops found.' : 'Click Optimize Route to fetch the latest route from the backend.'}
         </div>
       ) : (
-        <section className="space-y-3">
-          {optimizedRoute.route.map((step) => (
-            <RouteCard
-              key={`${step.order}-${step.customer}`}
-              order={step.order}
-              customer={step.customer}
-              address={step.address}
-              distance={formatDistance(step.distanceFromPrevious)}
-            />
-          ))}
-        </section>
+        <>
+          <section className="space-y-3">
+            {optimizedRoute.route.map((step) => (
+              <RouteCard
+                key={`${step.order}-${step.customer}`}
+                order={step.order}
+                customer={step.customer}
+                address={step.address}
+                distance={formatDistance(step.distanceFromPrevious)}
+              />
+            ))}
+          </section>
+          <RouteMap stops={optimizedRoute.route} />
+        </>
       )}
     </div>
   );
