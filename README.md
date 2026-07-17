@@ -61,22 +61,23 @@ A full-stack web application that optimizes delivery routes using Graph Theory a
 ```
 Smart Delivery Route Optimizer
 │
-├── src/main/java
-│   ├── controller
-│   ├── service
-│   ├── repository
-│   ├── entity
-│   ├── graph
-│   ├── algorithm
-│   └── route
+├── backend
+│   ├── src/main/java
+│   ├── src/main/resources
+│   ├── src/test
+│   └── pom.xml
 │
-├── src
-│   ├── pages
-│   ├── components
-│   ├── services
-│   └── layouts
+├── frontend
+│   ├── src
+│   │   ├── pages
+│   │   ├── components
+│   │   ├── services
+│   │   └── layouts
+│   ├── index.html
+│   └── package.json
 │
-└── pom.xml
+├── screenshots
+└── README.md
 ```
 
 ---
@@ -88,7 +89,7 @@ Smart Delivery Route Optimizer
 ```bash
 git clone https://github.com/mohdazaanjaved-eng/smart-delivery-route-optimizer
 
-cd Smart Delivery Route Optimizer
+cd "Smart Delivery Route Optimizer/backend"
 
 ./mvnw spring-boot:run
 ```
@@ -104,6 +105,8 @@ http://localhost:8080
 ### Frontend
 
 ```bash
+cd "Smart Delivery Route Optimizer/frontend"
+
 npm install
 
 npm run dev

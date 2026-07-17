@@ -1,6 +1,11 @@
-target/
-node_modules/
-dist/
+backend/target/
+frontend/node_modules/
+frontend/dist/
+.npm-cache/
+.reportgen/
+Smart_Delivery_Route_Optimizer_Final_Year_Project_Report.docx
+generate_report.js
+verify_report.js
 
 ### Maven ###
 pom.xml.tag
@@ -33,6 +38,8 @@ replay_pid*
 Thumbs.db
 
 ### Environment ###
-.env
-.env.*
-!.env.example
+**/.env
+**/.env.local
+**/.env.production
+**/.env.development
+!**/.env.example
