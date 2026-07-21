@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -47,6 +48,11 @@ public class DeliveryController {
             @Valid @RequestBody UpdateDeliveryRequest request
     ) {
         return ResponseEntity.ok(deliveryService.updateDelivery(id, request));
+    }
+
+    @PatchMapping("/{id}/complete")
+    public ResponseEntity<DeliveryResponse> completeDelivery(@PathVariable Long id) {
+        return ResponseEntity.ok(deliveryService.completeDelivery(id));
     }
 
     @DeleteMapping("/{id}")

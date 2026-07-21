@@ -5,6 +5,7 @@ import com.smartdelivery.dto.DeliveryResponse;
 import com.smartdelivery.dto.UpdateDeliveryRequest;
 import com.smartdelivery.entity.Delivery;
 import com.smartdelivery.entity.DeliveryStatus;
+import com.smartdelivery.exception.DuplicateResourceException;
 import com.smartdelivery.exception.ResourceNotFoundException;
 import com.smartdelivery.repository.DeliveryRepository;
 import com.smartdelivery.service.DeliveryService;
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
@@ -73,6 +75,22 @@ public class DeliveryServiceImpl implements DeliveryService {
 
     @Override
     @Transactional
+    public DeliveryResponse completeDelivery(Long id) {
+        Delivery delivery = findDeliveryById(id);
+
+        if (delivery.getStatus() == DeliveryStatus.COMPLETED
+                || delivery.getStatus() == DeliveryStatus.DELIVERED) {
+            throw new DuplicateResourceException("Delivery is already completed");
+        }
+
+        delivery.setStatus(DeliveryStatus.COMPLETED);
+        delivery.setCompletedAt(LocalDateTime.now());
+
+        return toResponse(deliveryRepository.save(delivery));
+    }
+
+    @Override
+    @Transactional
     public void deleteDelivery(Long id) {
         Delivery delivery = findDeliveryById(id);
         deliveryRepository.delete(delivery);
@@ -97,6 +115,7 @@ public class DeliveryServiceImpl implements DeliveryService {
                 .estimatedDeliveryTime(delivery.getEstimatedDeliveryTime())
                 .createdAt(delivery.getCreatedAt())
                 .updatedAt(delivery.getUpdatedAt())
+                .completedAt(delivery.getCompletedAt())
                 .build();
     }
 }

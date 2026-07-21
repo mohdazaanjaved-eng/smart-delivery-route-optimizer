@@ -16,5 +16,7 @@ public interface DeliveryService {
 
     DeliveryResponse updateDelivery(Long id, UpdateDeliveryRequest request);
 
+    DeliveryResponse completeDelivery(Long id);
+
     void deleteDelivery(Long id);
 }

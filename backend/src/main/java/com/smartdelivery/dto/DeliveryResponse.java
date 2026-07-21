@@ -19,6 +19,7 @@ public record DeliveryResponse(
         DeliveryStatus status,
         LocalDateTime estimatedDeliveryTime,
         LocalDateTime createdAt,
-        LocalDateTime updatedAt
+        LocalDateTime updatedAt,
+        LocalDateTime completedAt
 ) {
 }
