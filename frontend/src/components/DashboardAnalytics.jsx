@@ -1,0 +1,27 @@
+import { memo, useMemo } from 'react';
+import { Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+
+const STATUS_COLORS = { PENDING: '#f59e0b', IN_TRANSIT: '#2563eb', DELIVERED: '#22c55e', CANCELLED: '#ef4444' };
+const PRIORITY_COLORS = { LOW: '#22c55e', MEDIUM: '#f59e0b', HIGH: '#ef4444' };
+const tooltipStyle = { border: '0', borderRadius: 14, boxShadow: '0 14px 35px rgba(15,23,42,.14)', fontSize: 12 };
+
+function countBy(data, field, options) { return options.map((name) => ({ name: name.replace('_', ' '), value: data.filter((item) => item[field] === name).length, color: field === 'status' ? STATUS_COLORS[name] : PRIORITY_COLORS[name] })); }
+
+function DashboardAnalytics({ deliveries }) {
+  const statusData = useMemo(() => countBy(deliveries, 'status', ['PENDING','IN_TRANSIT','DELIVERED','CANCELLED']), [deliveries]);
+  const priorityData = useMemo(() => countBy(deliveries, 'priority', ['LOW','MEDIUM','HIGH']), [deliveries]);
+  const weekly = useMemo(() => {
+    const formatter = new Intl.DateTimeFormat('en-IN', { weekday: 'short' });
+    return Array.from({ length: 7 }, (_, index) => { const date = new Date(); date.setDate(date.getDate() - (6-index)); const value = deliveries.filter((item) => { const created = new Date(item.createdAt || item.estimatedDeliveryTime || 0); return created.toDateString() === date.toDateString(); }).length; return { day: formatter.format(date), deliveries: value }; });
+  }, [deliveries]);
+  const completed = deliveries.filter((item) => item.status === 'DELIVERED').length;
+  const percent = deliveries.length ? Math.round((completed / deliveries.length) * 100) : 0;
+
+  return <div className="grid gap-5 xl:grid-cols-12">
+    <section className="card p-6 transition hover:-translate-y-1 hover:shadow-xl xl:col-span-7"><div><h3 className="font-bold text-slate-950">Weekly delivery trend</h3><p className="mt-1 text-xs text-slate-500">Deliveries created over the last seven days</p></div><div className="mt-6 h-72"><ResponsiveContainer width="100%" height="100%"><AreaChart data={weekly}><defs><linearGradient id="trend" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#2563eb" stopOpacity={.32}/><stop offset="1" stopColor="#2563eb" stopOpacity={0}/></linearGradient></defs><CartesianGrid strokeDasharray="4 4" vertical={false} stroke="#e2e8f0" opacity={.45}/><XAxis dataKey="day" axisLine={false} tickLine={false} tick={{fill:'#94a3b8',fontSize:12}}/><YAxis allowDecimals={false} axisLine={false} tickLine={false} tick={{fill:'#94a3b8',fontSize:12}}/><Tooltip contentStyle={tooltipStyle}/><Area type="monotone" dataKey="deliveries" stroke="#2563eb" strokeWidth={3} fill="url(#trend)" activeDot={{r:6,fill:'#2563eb',stroke:'#fff',strokeWidth:3}}/></AreaChart></ResponsiveContainer></div></section>
+    <section className="card p-6 transition hover:-translate-y-1 hover:shadow-xl xl:col-span-5"><h3 className="font-bold text-slate-950">Deliveries by status</h3><p className="mt-1 text-xs text-slate-500">Current operational distribution</p><div className="mt-4 flex h-72 items-center"><div className="h-full flex-1"><ResponsiveContainer><PieChart><Pie data={statusData} dataKey="value" innerRadius={58} outerRadius={88} paddingAngle={4} stroke="none">{statusData.map((entry)=><Cell key={entry.name} fill={entry.color}/>)}</Pie><Tooltip contentStyle={tooltipStyle}/></PieChart></ResponsiveContainer></div><div className="space-y-3">{statusData.map((item)=><div key={item.name} className="flex items-center gap-2 text-xs"><span className="h-2.5 w-2.5 rounded-full" style={{background:item.color}}/><span className="w-20 text-slate-500">{item.name}</span><b className="text-slate-900">{item.value}</b></div>)}</div></div></section>
+    <section className="card p-6 transition hover:-translate-y-1 hover:shadow-xl xl:col-span-7"><h3 className="font-bold text-slate-950">Deliveries by priority</h3><p className="mt-1 text-xs text-slate-500">Workload urgency breakdown</p><div className="mt-6 h-56"><ResponsiveContainer><BarChart data={priorityData}><CartesianGrid strokeDasharray="4 4" vertical={false} stroke="#e2e8f0" opacity={.45}/><XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill:'#94a3b8',fontSize:12}}/><YAxis allowDecimals={false} axisLine={false} tickLine={false} tick={{fill:'#94a3b8',fontSize:12}}/><Tooltip contentStyle={tooltipStyle}/><Bar dataKey="value" radius={[8,8,2,2]}>{priorityData.map((entry)=><Cell key={entry.name} fill={entry.color}/>)}</Bar></BarChart></ResponsiveContainer></div></section>
+    <section className="card flex flex-col items-center justify-center p-6 text-center transition hover:-translate-y-1 hover:shadow-xl xl:col-span-5"><div className="relative h-44 w-44"><ResponsiveContainer><PieChart><Pie data={[{value:percent},{value:100-percent}]} dataKey="value" startAngle={90} endAngle={-270} innerRadius={62} outerRadius={78} stroke="none"><Cell fill="#22c55e"/><Cell fill="#e2e8f0"/></Pie></PieChart></ResponsiveContainer><div className="absolute inset-0 flex flex-col items-center justify-center"><strong className="text-3xl font-bold text-slate-950">{percent}%</strong><span className="text-xs text-slate-500">complete</span></div></div><h3 className="mt-2 font-bold text-slate-950">Completion percentage</h3><p className="mt-1 text-xs text-slate-500">{completed} of {deliveries.length} deliveries completed</p></section>
+  </div>;
+}
+export default memo(DashboardAnalytics);

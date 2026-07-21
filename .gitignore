@@ -1,6 +1,12 @@
 target/
 node_modules/
 dist/
+tmp/
+outputs/
+
+frontend/node_modules/
+frontend/dist/
+backend/target/
 
 ### Maven ###
 pom.xml.tag
@@ -36,3 +42,7 @@ Thumbs.db
 .env
 .env.*
 !.env.example
+
+# Generated documents and reports
+*.pptx
+Smart_Delivery_Route_Optimizer_INTERNSHIP_FINAL_Project_Report.docx
