@@ -78,7 +78,10 @@ public class Delivery {
 
     @NotNull(message = "Delivery status is required")
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 30)
+    @Column(
+            nullable = false,
+            columnDefinition = "enum('ASSIGNED','DELIVERED','IN_PROGRESS','PENDING','COMPLETED')"
+    )
     private DeliveryStatus status;
 
     @NotNull(message = "Estimated delivery time is required")
@@ -91,6 +94,9 @@ public class Delivery {
 
     @Column(nullable = false)
     private LocalDateTime updatedAt;
+
+    @Column
+    private LocalDateTime completedAt;
 
     @PrePersist
     void onCreate() {

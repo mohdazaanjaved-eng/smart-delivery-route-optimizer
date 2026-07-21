@@ -1,8 +1,9 @@
 package com.smartdelivery.entity;
 
 public enum DeliveryStatus {
-    PENDING,
     ASSIGNED,
+    PENDING,
     IN_PROGRESS,
+    COMPLETED,
     DELIVERED
 }

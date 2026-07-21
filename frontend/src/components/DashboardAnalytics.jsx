@@ -1,20 +1,21 @@
 import { memo, useMemo } from 'react';
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 
-const STATUS_COLORS = { PENDING: '#f59e0b', IN_TRANSIT: '#2563eb', DELIVERED: '#22c55e', CANCELLED: '#ef4444' };
+const STATUS_COLORS = { PENDING: '#f59e0b', IN_PROGRESS: '#2563eb', COMPLETED: '#22c55e' };
 const PRIORITY_COLORS = { LOW: '#22c55e', MEDIUM: '#f59e0b', HIGH: '#ef4444' };
 const tooltipStyle = { border: '0', borderRadius: 14, boxShadow: '0 14px 35px rgba(15,23,42,.14)', fontSize: 12 };
 
-function countBy(data, field, options) { return options.map((name) => ({ name: name.replace('_', ' '), value: data.filter((item) => item[field] === name).length, color: field === 'status' ? STATUS_COLORS[name] : PRIORITY_COLORS[name] })); }
+function normalizedStatus(status) { if (status === 'COMPLETED' || status === 'DELIVERED') return 'COMPLETED'; if (status === 'ASSIGNED' || status === 'IN_TRANSIT') return 'IN_PROGRESS'; return status; }
+function countBy(data, field, options) { return options.map((name) => ({ name: name.replace('_', ' '), value: data.filter((item) => field === 'status' ? normalizedStatus(item.status) === name : item[field] === name).length, color: field === 'status' ? STATUS_COLORS[name] : PRIORITY_COLORS[name] })); }
 
 function DashboardAnalytics({ deliveries }) {
-  const statusData = useMemo(() => countBy(deliveries, 'status', ['PENDING','IN_TRANSIT','DELIVERED','CANCELLED']), [deliveries]);
+  const statusData = useMemo(() => countBy(deliveries, 'status', ['PENDING','IN_PROGRESS','COMPLETED']), [deliveries]);
   const priorityData = useMemo(() => countBy(deliveries, 'priority', ['LOW','MEDIUM','HIGH']), [deliveries]);
   const weekly = useMemo(() => {
     const formatter = new Intl.DateTimeFormat('en-IN', { weekday: 'short' });
     return Array.from({ length: 7 }, (_, index) => { const date = new Date(); date.setDate(date.getDate() - (6-index)); const value = deliveries.filter((item) => { const created = new Date(item.createdAt || item.estimatedDeliveryTime || 0); return created.toDateString() === date.toDateString(); }).length; return { day: formatter.format(date), deliveries: value }; });
   }, [deliveries]);
-  const completed = deliveries.filter((item) => item.status === 'DELIVERED').length;
+  const completed = deliveries.filter((item) => normalizedStatus(item.status) === 'COMPLETED').length;
   const percent = deliveries.length ? Math.round((completed / deliveries.length) * 100) : 0;
 
   return <div className="grid gap-5 xl:grid-cols-12">

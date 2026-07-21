@@ -5,17 +5,21 @@ import com.smartdelivery.dto.DeliveryResponse;
 import com.smartdelivery.dto.UpdateDeliveryRequest;
 import com.smartdelivery.entity.Delivery;
 import com.smartdelivery.entity.DeliveryStatus;
+import com.smartdelivery.exception.DuplicateResourceException;
 import com.smartdelivery.exception.ResourceNotFoundException;
 import com.smartdelivery.repository.DeliveryRepository;
 import com.smartdelivery.service.DeliveryService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class DeliveryServiceImpl implements DeliveryService {
 
     private final DeliveryRepository deliveryRepository;
@@ -73,6 +77,36 @@ public class DeliveryServiceImpl implements DeliveryService {
 
     @Override
     @Transactional
+    public DeliveryResponse completeDelivery(Long id) {
+        log.info("Completing delivery {}", id);
+
+        try {
+            Delivery delivery = findDeliveryById(id);
+            log.info("Delivery id={} currentStatus={}", id, delivery.getStatus());
+
+            if (delivery.getStatus() == DeliveryStatus.COMPLETED
+                    || delivery.getStatus() == DeliveryStatus.DELIVERED) {
+                throw new DuplicateResourceException("Delivery is already completed");
+            }
+
+            delivery.setStatus(DeliveryStatus.COMPLETED);
+            delivery.setCompletedAt(LocalDateTime.now());
+
+            log.info("Saving completed delivery id={}", id);
+            Delivery savedDelivery = deliveryRepository.saveAndFlush(delivery);
+            log.info("Completed delivery saved id={} status={} completedAt={}",
+                    id,
+                    savedDelivery.getStatus(),
+                    savedDelivery.getCompletedAt());
+            return toResponse(savedDelivery);
+        } catch (Exception e) {
+            log.error("Delivery completion failed", e);
+            throw e;
+        }
+    }
+
+    @Override
+    @Transactional
     public void deleteDelivery(Long id) {
         Delivery delivery = findDeliveryById(id);
         deliveryRepository.delete(delivery);
@@ -97,6 +131,7 @@ public class DeliveryServiceImpl implements DeliveryService {
                 .estimatedDeliveryTime(delivery.getEstimatedDeliveryTime())
                 .createdAt(delivery.getCreatedAt())
                 .updatedAt(delivery.getUpdatedAt())
+                .completedAt(delivery.getCompletedAt())
                 .build();
     }
 }

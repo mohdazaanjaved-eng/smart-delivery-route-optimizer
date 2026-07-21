@@ -1,4 +1,12 @@
 import { MapPin, Navigation } from 'lucide-react';
 import { motion } from 'framer-motion';
-function RouteCard({order,customer,address,distance,isLast}){return <motion.article initial={{opacity:0,x:-12}} animate={{opacity:1,x:0}} transition={{delay:Math.min(order*.05,.4)}} className="relative flex gap-4 pb-5"><div className="relative z-10 flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-600 text-sm font-bold text-white shadow-lg shadow-blue-500/20">{order}</div>{!isLast&&<div className="absolute left-[21px] top-11 h-[calc(100%-28px)] w-px bg-gradient-to-b from-blue-300 to-slate-200"/>}<div className="min-w-0 flex-1 rounded-2xl border border-slate-200 bg-white p-4 transition hover:border-blue-200 hover:shadow-lg"><div className="flex flex-wrap justify-between gap-3"><div><h3 className="font-bold text-slate-950">{customer}</h3><p className="mt-1.5 flex items-start gap-1.5 text-sm text-slate-500"><MapPin size={15} className="mt-0.5 shrink-0"/>{address}</p></div><span className="flex h-fit items-center gap-1.5 rounded-full bg-blue-50 px-3 py-1.5 text-xs font-bold text-blue-700"><Navigation size={13}/>{distance} km</span></div></div></motion.article>}
+function RouteCard({ displayNumber, label, customer, address, distance, isLast }) {
+  return <motion.article initial={{opacity:0,x:-12}} animate={{opacity:1,x:0}} transition={{delay:Math.min(displayNumber*.05,.4)}} className="relative flex gap-4 pb-5">
+    <div className="relative z-10 flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-600 text-sm font-bold text-white shadow-lg shadow-blue-500/20" aria-label={`Route point ${displayNumber}`}>{displayNumber}</div>
+    {!isLast&&<div className="absolute left-[21px] top-11 h-[calc(100%-28px)] w-px bg-gradient-to-b from-blue-300 to-slate-200"/>}
+    <div className="min-w-0 flex-1 rounded-2xl border border-slate-200 bg-white p-4 transition hover:border-blue-200 hover:shadow-lg">
+      <div className="flex flex-wrap justify-between gap-3"><div><p className="text-[11px] font-bold uppercase tracking-[0.16em] text-blue-600">{label}</p><h3 className="mt-1 font-bold text-slate-950">{customer}</h3><p className="mt-1.5 flex items-start gap-1.5 text-sm text-slate-500"><MapPin size={15} className="mt-0.5 shrink-0"/>{address}</p></div><span className="flex h-fit items-center gap-1.5 rounded-full bg-blue-50 px-3 py-1.5 text-xs font-bold text-blue-700"><Navigation size={13}/>{distance} km</span></div>
+    </div>
+  </motion.article>;
+}
 export default RouteCard;
