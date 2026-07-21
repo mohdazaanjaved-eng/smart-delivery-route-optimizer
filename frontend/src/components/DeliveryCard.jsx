@@ -28,6 +28,7 @@ function DeliveryCard({ id, customer, address, priority, status, eta, startedAt,
     {status === 'IN_PROGRESS' && startedAt && <div className="mt-3 flex items-center gap-2 text-xs font-medium text-indigo-700"><Activity size={15} /><span>Started {startedAt}</span></div>}
     {action === 'START' && onStart && <button type="button" onClick={() => onStart(id)} disabled={starting} className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-blue-700 disabled:opacity-60">{starting ? <><Loader2 className="animate-spin" size={16} />Starting...</> : <><Play size={16} />Start Delivery</>}</button>}
     {action === 'COMPLETE' && onComplete && <button type="button" onClick={() => onComplete(id)} disabled={completing} className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-emerald-700 disabled:opacity-60">{completing ? <><Loader2 className="animate-spin" size={16} />Completing...</> : <><Check size={16} />Mark Completed</>}</button>}
+    {(action === 'COMPLETED' || action === 'DELIVERED') && <button type="button" disabled className="mt-4 inline-flex w-full cursor-not-allowed items-center justify-center gap-2 rounded-xl bg-emerald-100 px-4 py-2.5 text-sm font-bold text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300"><Check size={16} />{action === 'DELIVERED' ? 'Delivered' : 'Completed'}</button>}
   </motion.article>;
 }
 

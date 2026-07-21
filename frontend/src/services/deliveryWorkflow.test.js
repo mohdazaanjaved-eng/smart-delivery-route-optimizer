@@ -6,8 +6,8 @@ test('shows the correct transition action for every workflow status', () => {
   assert.equal(deliveryAction('PENDING'), 'START');
   assert.equal(deliveryAction('ASSIGNED'), 'START');
   assert.equal(deliveryAction('IN_PROGRESS'), 'COMPLETE');
-  assert.equal(deliveryAction('COMPLETED'), 'NONE');
-  assert.equal(deliveryAction('DELIVERED'), 'NONE');
+  assert.equal(deliveryAction('COMPLETED'), 'COMPLETED');
+  assert.equal(deliveryAction('DELIVERED'), 'DELIVERED');
 });
 
 test('successful start object changes row action and dashboard counts', () => {

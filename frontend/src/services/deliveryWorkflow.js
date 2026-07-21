@@ -1,6 +1,12 @@
 export const isCompletedStatus = (status) => status === 'COMPLETED' || status === 'DELIVERED';
 export const normalizedStatus = (status) => isCompletedStatus(status) ? 'COMPLETED' : status === 'ASSIGNED' ? 'PENDING' : (status || 'PENDING');
-export const deliveryAction = (status) => status === 'PENDING' || status === 'ASSIGNED' ? 'START' : status === 'IN_PROGRESS' ? 'COMPLETE' : 'NONE';
+export const deliveryAction = (status) => {
+  if (status === 'PENDING' || status === 'ASSIGNED') return 'START';
+  if (status === 'IN_PROGRESS') return 'COMPLETE';
+  if (status === 'COMPLETED') return 'COMPLETED';
+  if (status === 'DELIVERED') return 'DELIVERED';
+  return 'NONE';
+};
 export const deliveryCounts = (deliveries) => ({
   pending: deliveries.filter((d) => normalizedStatus(d.status) === 'PENDING').length,
   inProgress: deliveries.filter((d) => normalizedStatus(d.status) === 'IN_PROGRESS').length,
