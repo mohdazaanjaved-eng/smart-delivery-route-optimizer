@@ -14,7 +14,7 @@ import static org.mockito.Mockito.when;
 class DeliverySchemaMigrationTests {
 
     @Test
-    void addsMissingCompletionColumnAndPreservesExistingEnumValues() {
+    void upgradesLegacyDeliverySchemaToCanonicalCompletionEnum() {
         @SuppressWarnings("unchecked")
         ObjectProvider<JdbcTemplate> provider = mock(ObjectProvider.class);
         JdbcTemplate jdbcTemplate = mock(JdbcTemplate.class);
@@ -24,7 +24,7 @@ class DeliverySchemaMigrationTests {
         when(jdbcTemplate.queryForObject(contains("COLUMN_NAME = 'completed_at'"), eq(Integer.class)))
                 .thenReturn(0);
         when(jdbcTemplate.queryForObject(contains("COLUMN_NAME = 'status'"), eq(String.class)))
-                .thenReturn("enum('PENDING','ASSIGNED','IN_PROGRESS','DELIVERED')");
+                .thenReturn("enum('ASSIGNED','DELIVERED','IN_PROGRESS','PENDING')");
 
         new DeliverySchemaMigration(provider).run(mock(ApplicationArguments.class));
 
@@ -33,7 +33,7 @@ class DeliverySchemaMigrationTests {
         );
         verify(jdbcTemplate).execute(
                 "ALTER TABLE deliveries MODIFY COLUMN status "
-                        + "enum('PENDING','ASSIGNED','IN_PROGRESS','DELIVERED','COMPLETED') NOT NULL"
+                        + "enum('ASSIGNED','DELIVERED','IN_PROGRESS','PENDING','COMPLETED') NOT NULL"
         );
     }
 }

@@ -15,6 +15,9 @@ import java.util.Locale;
 @Slf4j
 public class DeliverySchemaMigration implements ApplicationRunner {
 
+    private static final String STATUS_COLUMN_TYPE =
+            "enum('ASSIGNED','DELIVERED','IN_PROGRESS','PENDING','COMPLETED')";
+
     private final ObjectProvider<JdbcTemplate> jdbcTemplateProvider;
 
     @Override
@@ -77,16 +80,9 @@ public class DeliverySchemaMigration implements ApplicationRunner {
             return;
         }
 
-        int closingParenthesis = columnType.lastIndexOf(')');
-        if (closingParenthesis < 0) {
-            throw new IllegalStateException("Unexpected MySQL ENUM definition for deliveries.status: " + columnType);
-        }
-
-        String completedColumnType = columnType.substring(0, closingParenthesis)
-                + ",'COMPLETED')";
-        log.warn("Adding COMPLETED to deliveries.status MySQL ENUM");
+        log.warn("Upgrading deliveries.status to include COMPLETED");
         jdbcTemplate.execute(
-                "ALTER TABLE deliveries MODIFY COLUMN status " + completedColumnType + " NOT NULL"
+                "ALTER TABLE deliveries MODIFY COLUMN status " + STATUS_COLUMN_TYPE + " NOT NULL"
         );
     }
 }
