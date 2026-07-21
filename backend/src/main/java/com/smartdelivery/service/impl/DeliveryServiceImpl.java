@@ -78,7 +78,7 @@ public class DeliveryServiceImpl implements DeliveryService {
     @Override
     @Transactional
     public DeliveryResponse completeDelivery(Long id) {
-        log.info("Completing delivery id={}", id);
+        log.info("Completing delivery {}", id);
 
         try {
             Delivery delivery = findDeliveryById(id);
@@ -99,9 +99,9 @@ public class DeliveryServiceImpl implements DeliveryService {
                     savedDelivery.getStatus(),
                     savedDelivery.getCompletedAt());
             return toResponse(savedDelivery);
-        } catch (Exception exception) {
-            log.error("Failed to complete delivery id={}", id, exception);
-            throw exception;
+        } catch (Exception e) {
+            log.error("Delivery completion failed", e);
+            throw e;
         }
     }
 
