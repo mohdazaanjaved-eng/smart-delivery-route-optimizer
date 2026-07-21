@@ -72,6 +72,12 @@ export const deliveryService = {
       return data;
     }),
 
+  startDelivery: async (id) =>
+    withDeliveryErrorHandling(async () => {
+      const { data } = await httpClient.patch(`/api/deliveries/${id}/start`, null, getAuthConfig());
+      return data;
+    }),
+
   deleteDelivery: async (id) =>
     withDeliveryErrorHandling(async () => {
       await httpClient.delete(`/api/deliveries/${id}`, getAuthConfig());

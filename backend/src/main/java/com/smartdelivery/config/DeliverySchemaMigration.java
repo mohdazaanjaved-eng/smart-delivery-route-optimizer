@@ -22,6 +22,8 @@ public class DeliverySchemaMigration implements ApplicationRunner {
             "ALTER TABLE deliveries MODIFY COLUMN status VARCHAR(32) NOT NULL";
     static final String COMPLETED_AT_MIGRATION_SQL =
             "ALTER TABLE deliveries ADD COLUMN completed_at DATETIME(6) NULL";
+    static final String STARTED_AT_MIGRATION_SQL =
+            "ALTER TABLE deliveries ADD COLUMN started_at DATETIME(6) NULL";
 
     private final ObjectProvider<JdbcTemplate> jdbcTemplateProvider;
 
@@ -39,6 +41,7 @@ public class DeliverySchemaMigration implements ApplicationRunner {
             }
 
             ensureCompletedAtColumn(jdbcTemplate);
+            ensureStartedAtColumn(jdbcTemplate);
             ensureVarcharStatusColumn(jdbcTemplate);
         } catch (RuntimeException exception) {
             log.error("Delivery schema migration failed; application startup cannot continue", exception);
@@ -94,6 +97,24 @@ public class DeliverySchemaMigration implements ApplicationRunner {
         if (count != null && count == 0) {
             log.warn("Adding missing deliveries.completed_at column");
             jdbcTemplate.execute(COMPLETED_AT_MIGRATION_SQL);
+        }
+    }
+
+    private void ensureStartedAtColumn(JdbcTemplate jdbcTemplate) {
+        Integer count = jdbcTemplate.queryForObject(
+                """
+                SELECT COUNT(*)
+                FROM information_schema.COLUMNS
+                WHERE TABLE_SCHEMA = DATABASE()
+                  AND TABLE_NAME = 'deliveries'
+                  AND COLUMN_NAME = 'started_at'
+                """,
+                Integer.class
+        );
+
+        if (count != null && count == 0) {
+            log.warn("Adding missing deliveries.started_at column");
+            jdbcTemplate.execute(STARTED_AT_MIGRATION_SQL);
         }
     }
 

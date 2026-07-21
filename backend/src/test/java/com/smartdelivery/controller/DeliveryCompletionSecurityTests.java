@@ -38,4 +38,15 @@ class DeliveryCompletionSecurityTests {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("COMPLETED"));
     }
+
+    @Test
+    @WithMockUser
+    void authenticatedStartPatchAccessSucceeds() throws Exception {
+        when(deliveryService.startDelivery(1L)).thenReturn(
+                DeliveryResponse.builder().id(1L).status(DeliveryStatus.IN_PROGRESS).build()
+        );
+        mockMvc.perform(patch("/api/deliveries/1/start"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("IN_PROGRESS"));
+    }
 }

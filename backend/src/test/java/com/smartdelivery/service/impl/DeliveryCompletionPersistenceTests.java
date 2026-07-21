@@ -57,6 +57,44 @@ class DeliveryCompletionPersistenceTests {
     }
 
     @Test
+    void pendingDeliveryStartsAndTimestampsPersistAcrossCompletion() {
+        Delivery pending = deliveryRepository.saveAndFlush(delivery(DeliveryStatus.PENDING));
+        DeliveryResponse started = deliveryService.startDelivery(pending.getId());
+        entityManager.clear();
+        Delivery reloadedStarted = deliveryRepository.findById(pending.getId()).orElseThrow();
+        assertEquals(DeliveryStatus.IN_PROGRESS, started.status());
+        assertNotNull(started.startedAt());
+        assertEquals(DeliveryStatus.IN_PROGRESS, reloadedStarted.getStatus());
+        assertNotNull(reloadedStarted.getStartedAt());
+
+        DeliveryResponse completed = deliveryService.completeDelivery(pending.getId());
+        entityManager.clear();
+        Delivery reloadedCompleted = deliveryRepository.findById(pending.getId()).orElseThrow();
+        assertEquals(DeliveryStatus.COMPLETED, completed.status());
+        assertNotNull(reloadedCompleted.getStartedAt());
+        assertNotNull(reloadedCompleted.getCompletedAt());
+    }
+
+    @Test
+    void assignedDeliveryCanStart() {
+        Delivery assigned = deliveryRepository.saveAndFlush(delivery(DeliveryStatus.ASSIGNED));
+        assertEquals(DeliveryStatus.IN_PROGRESS, deliveryService.startDelivery(assigned.getId()).status());
+    }
+
+    @Test
+    void invalidStartStatusesReturnConflict() {
+        for (DeliveryStatus status : new DeliveryStatus[]{DeliveryStatus.IN_PROGRESS, DeliveryStatus.COMPLETED, DeliveryStatus.DELIVERED}) {
+            Delivery existing = deliveryRepository.saveAndFlush(delivery(status));
+            assertThrows(DuplicateResourceException.class, () -> deliveryService.startDelivery(existing.getId()));
+        }
+    }
+
+    @Test
+    void missingDeliveryCannotStart() {
+        assertThrows(ResourceNotFoundException.class, () -> deliveryService.startDelivery(999998L));
+    }
+
+    @Test
     void legacyDeliveredDeliveryReturnsConflict() {
         Delivery delivered = deliveryRepository.saveAndFlush(delivery(DeliveryStatus.DELIVERED));
         assertThrows(DuplicateResourceException.class,

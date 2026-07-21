@@ -107,6 +107,28 @@ public class DeliveryServiceImpl implements DeliveryService {
 
     @Override
     @Transactional
+    public DeliveryResponse startDelivery(Long id) {
+        Delivery delivery = findDeliveryById(id);
+
+        if (delivery.getStatus() == DeliveryStatus.IN_PROGRESS) {
+            throw new DuplicateResourceException("Delivery is already in progress.");
+        }
+        if (delivery.getStatus() == DeliveryStatus.COMPLETED
+                || delivery.getStatus() == DeliveryStatus.DELIVERED) {
+            throw new DuplicateResourceException("Completed delivery cannot be started.");
+        }
+        if (delivery.getStatus() != DeliveryStatus.PENDING
+                && delivery.getStatus() != DeliveryStatus.ASSIGNED) {
+            throw new DuplicateResourceException("Delivery cannot be started from its current status.");
+        }
+
+        delivery.setStatus(DeliveryStatus.IN_PROGRESS);
+        delivery.setStartedAt(LocalDateTime.now());
+        return toResponse(deliveryRepository.saveAndFlush(delivery));
+    }
+
+    @Override
+    @Transactional
     public void deleteDelivery(Long id) {
         Delivery delivery = findDeliveryById(id);
         deliveryRepository.delete(delivery);
@@ -132,6 +154,7 @@ public class DeliveryServiceImpl implements DeliveryService {
                 .createdAt(delivery.getCreatedAt())
                 .updatedAt(delivery.getUpdatedAt())
                 .completedAt(delivery.getCompletedAt())
+                .startedAt(delivery.getStartedAt())
                 .build();
     }
 }

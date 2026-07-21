@@ -6,6 +6,7 @@ import DashboardAnalytics from '../components/DashboardAnalytics.jsx';
 import DeliveryCard, { isCompletedDelivery, normalizeDeliveryStatus } from '../components/DeliveryCard.jsx';
 import StatsCard from '../components/StatsCard.jsx';
 import { deliveryService } from '../services/deliveryService';
+import { deliveryCounts } from '../services/deliveryWorkflow.js';
 
 const formatEta = (value) => value ? new Intl.DateTimeFormat('en-IN', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value)) : 'Not scheduled';
 function Skeleton() { return <div className="card animate-pulse p-6"><div className="h-12 w-12 rounded-2xl bg-slate-100"/><div className="mt-6 h-4 w-24 rounded bg-slate-100"/><div className="mt-3 h-8 w-16 rounded bg-slate-100"/></div>; }
@@ -14,7 +15,7 @@ function Dashboard() {
   const [deliveries,setDeliveries]=useState([]); const [loading,setLoading]=useState(true); const [errorMessage,setErrorMessage]=useState(''); const [now,setNow]=useState(()=>new Date());
   useEffect(()=>{let mounted=true;deliveryService.getAllDeliveries().then(data=>mounted&&setDeliveries(data)).catch(error=>mounted&&setErrorMessage(error.message)).finally(()=>mounted&&setLoading(false));return()=>{mounted=false}},[]);
   useEffect(()=>{const timer=window.setInterval(()=>setNow(new Date()),60000);return()=>window.clearInterval(timer)},[]);
-  const stats=useMemo(()=>({total:deliveries.length,pending:deliveries.filter(d=>normalizeDeliveryStatus(d.status)==='PENDING').length,inProgress:deliveries.filter(d=>normalizeDeliveryStatus(d.status)==='IN_PROGRESS').length,completed:deliveries.filter(d=>normalizeDeliveryStatus(d.status)==='COMPLETED').length}),[deliveries]);
+  const stats=useMemo(()=>({total:deliveries.length,...deliveryCounts(deliveries)}),[deliveries]);
   const recent=useMemo(()=>[...deliveries].sort((a,b)=>new Date(b.createdAt||0)-new Date(a.createdAt||0)).slice(0,6),[deliveries]);
   const dateLabel=new Intl.DateTimeFormat('en-IN',{weekday:'long',day:'numeric',month:'long',year:'numeric'}).format(now); const timeLabel=new Intl.DateTimeFormat('en-IN',{hour:'2-digit',minute:'2-digit'}).format(now);
   return <div className="space-y-8">

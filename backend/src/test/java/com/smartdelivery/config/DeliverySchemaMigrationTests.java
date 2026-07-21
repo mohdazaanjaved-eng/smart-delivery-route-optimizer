@@ -36,6 +36,8 @@ class DeliverySchemaMigrationTests {
                 .thenReturn(1);
         when(jdbcTemplate.queryForObject(contains("COLUMN_NAME = 'completed_at'"), eq(Integer.class)))
                 .thenReturn(0, 1);
+        when(jdbcTemplate.queryForObject(contains("COLUMN_NAME = 'started_at'"), eq(Integer.class)))
+                .thenReturn(0, 1);
         when(jdbcTemplate.queryForObject(contains("COLUMN_NAME = 'status'"), eq(String.class)))
                 .thenReturn(
                         "enum('ASSIGNED','DELIVERED','IN_PROGRESS','PENDING')",
@@ -49,6 +51,7 @@ class DeliverySchemaMigrationTests {
         migration.run(arguments);
 
         verify(jdbcTemplate, times(1)).execute(DeliverySchemaMigration.COMPLETED_AT_MIGRATION_SQL);
+        verify(jdbcTemplate, times(1)).execute(DeliverySchemaMigration.STARTED_AT_MIGRATION_SQL);
         verify(jdbcTemplate, times(1)).execute(DeliverySchemaMigration.STATUS_MIGRATION_SQL);
     }
 }
