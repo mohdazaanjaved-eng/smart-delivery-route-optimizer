@@ -55,6 +55,11 @@ public class DeliveryController {
         return ResponseEntity.ok(deliveryService.completeDelivery(id));
     }
 
+    @PatchMapping("/{id}/start")
+    public ResponseEntity<DeliveryResponse> startDelivery(@PathVariable Long id) {
+        return ResponseEntity.ok(deliveryService.startDelivery(id));
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteDelivery(@PathVariable Long id) {
         deliveryService.deleteDelivery(id);

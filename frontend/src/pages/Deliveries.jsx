@@ -1,9 +1,11 @@
-import { useEffect, useMemo, useState } from 'react';
-import { Check, Filter, Loader2, PackageOpen, Plus, Search, SlidersHorizontal } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { Activity, Check, Filter, Loader2, PackageOpen, Play, Plus, Search, SlidersHorizontal } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { Link } from 'react-router-dom';
 import DeliveryCard, { formatDeliveryStatus, isCompletedDelivery, normalizeDeliveryStatus, priorityClass, statusClass } from '../components/DeliveryCard.jsx';
 import { deliveryService } from '../services/deliveryService';
+import { completionErrorMessage, createCompletionGuard } from '../services/deliveryCompletion';
+import { createStartGuard, deliveryAction, startErrorMessage } from '../services/deliveryWorkflow.js';
 
 const formatDateTime = (value, fallback = 'Not scheduled') => value
   ? new Intl.DateTimeFormat('en-IN', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value))
@@ -15,7 +17,10 @@ function Deliveries() {
   const [error, setError] = useState('');
   const [query, setQuery] = useState('');
   const [status, setStatus] = useState('ALL');
-  const [completingId, setCompletingId] = useState(null);
+  const [completingIds, setCompletingIds] = useState(() => new Set());
+  const [startingIds, setStartingIds] = useState(() => new Set());
+  const completionGuard = useRef(createCompletionGuard());
+  const startGuard = useRef(createStartGuard());
 
   useEffect(() => {
     let mounted = true;
@@ -32,15 +37,40 @@ function Deliveries() {
   )), [deliveries, query, status]);
 
   const markCompleted = async (id) => {
-    setCompletingId(id);
+    if (!completionGuard.current.begin(id)) return;
+
+    const toastId = `delivery-completion-${id}`;
+    setCompletingIds((current) => new Set(current).add(id));
+    toast.loading('Marking delivery as completed...', { id: toastId });
     try {
       const updatedDelivery = await deliveryService.completeDelivery(id);
       setDeliveries((current) => current.map((delivery) => delivery.id === id ? updatedDelivery : delivery));
-      toast.success('Delivery marked as completed.');
+      toast.success('Delivery marked as completed.', { id: toastId });
     } catch (requestError) {
-      toast.error(requestError.message || 'Unable to mark delivery as completed.');
+      toast.error(completionErrorMessage(requestError), { id: toastId });
     } finally {
-      setCompletingId(null);
+      completionGuard.current.end(id);
+      setCompletingIds((current) => {
+        const next = new Set(current);
+        next.delete(id);
+        return next;
+      });
+    }
+  };
+
+  const startDelivery = async (id) => {
+    if (!startGuard.current.begin(id)) return;
+    const toastId = `delivery-start-error-${id}`;
+    setStartingIds((current) => new Set(current).add(id));
+    try {
+      const updatedDelivery = await deliveryService.startDelivery(id);
+      setDeliveries((current) => current.map((delivery) => delivery.id === id ? updatedDelivery : delivery));
+      toast.success('Delivery marked as in progress.', { id: toastId });
+    } catch (requestError) {
+      toast.error(startErrorMessage(requestError), { id: toastId });
+    } finally {
+      startGuard.current.end(id);
+      setStartingIds((current) => { const next = new Set(current); next.delete(id); return next; });
     }
   };
 
@@ -52,10 +82,13 @@ function Deliveries() {
       <div className="hidden overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-card dark:border-slate-700 dark:bg-slate-900 md:block"><div className="max-h-[620px] overflow-auto"><table className="w-full border-collapse text-left"><thead className="sticky top-0 z-10 bg-slate-50/95 text-[11px] font-bold uppercase tracking-wider text-slate-500 backdrop-blur dark:bg-slate-900/95"><tr><th className="px-6 py-4">Customer</th><th className="px-6 py-4">Destination</th><th className="px-6 py-4">Status</th><th className="px-6 py-4">Priority</th><th className="px-6 py-4">Estimated time</th><th className="px-6 py-4 text-right">Action</th></tr></thead>
         <tbody className="divide-y divide-slate-100 dark:divide-slate-800">{filtered.map((delivery, index) => {
           const completed = isCompletedDelivery(delivery.status);
-          return <tr key={delivery.id} className={`group transition hover:bg-blue-50/50 dark:hover:bg-blue-950/20 ${index % 2 ? 'bg-slate-50/35 dark:bg-slate-800/20' : ''} ${completed ? 'opacity-80' : ''}`}><td className="px-6 py-4"><p className="text-sm font-semibold text-slate-900">{delivery.customerName}</p><p className="mt-1 text-xs text-slate-500">{delivery.customerEmail || delivery.customerPhone || 'Delivery customer'}</p></td><td className="max-w-xs px-6 py-4 text-sm text-slate-600"><span className="line-clamp-2">{delivery.deliveryAddress}</span></td><td className="px-6 py-4"><span className={`whitespace-nowrap rounded-full px-2.5 py-1 text-[11px] font-bold ring-1 ring-inset ${statusClass[delivery.status] || statusClass.PENDING}`}>{formatDeliveryStatus(delivery.status)}</span>{completed && delivery.completedAt && <p className="mt-2 whitespace-nowrap text-[11px] font-medium text-emerald-700">{formatDateTime(delivery.completedAt, '')}</p>}</td><td className="px-6 py-4"><span className={`whitespace-nowrap rounded-full px-2.5 py-1 text-[11px] font-bold ${priorityClass[delivery.priority]}`}>{delivery.priority}</span></td><td className="whitespace-nowrap px-6 py-4 text-xs font-medium text-slate-600">{formatDateTime(delivery.estimatedDeliveryTime)}</td><td className="px-6 py-4 text-right"><button type="button" onClick={() => markCompleted(delivery.id)} disabled={completed || completingId === delivery.id} className="inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-xl bg-emerald-600 px-3 py-2 text-xs font-bold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:bg-emerald-100 disabled:text-emerald-700">{completingId === delivery.id ? <Loader2 className="animate-spin" size={14} /> : <Check size={14} />}{completed ? 'Completed' : completingId === delivery.id ? 'Completing...' : 'Mark Completed'}</button></td></tr>;
+          const completing = completingIds.has(delivery.id);
+          const starting = startingIds.has(delivery.id);
+          const action = deliveryAction(delivery.status);
+          return <tr key={delivery.id} className={`group transition hover:bg-blue-50/50 dark:hover:bg-blue-950/20 ${index % 2 ? 'bg-slate-50/35 dark:bg-slate-800/20' : ''} ${completed ? 'opacity-80' : ''} ${delivery.status === 'IN_PROGRESS' ? 'bg-indigo-50/40' : ''}`}><td className="px-6 py-4"><p className="text-sm font-semibold text-slate-900">{delivery.customerName}</p><p className="mt-1 text-xs text-slate-500">{delivery.customerEmail || delivery.customerPhone || 'Delivery customer'}</p></td><td className="max-w-xs px-6 py-4 text-sm text-slate-600"><span className="line-clamp-2">{delivery.deliveryAddress}</span></td><td className="px-6 py-4"><span className={`inline-flex items-center gap-1 whitespace-nowrap rounded-full px-2.5 py-1 text-[11px] font-bold ring-1 ring-inset ${statusClass[delivery.status] || statusClass.PENDING}`}>{delivery.status === 'IN_PROGRESS' && <Activity size={12} />}{formatDeliveryStatus(delivery.status)}</span>{delivery.status === 'IN_PROGRESS' && delivery.startedAt && <p className="mt-2 whitespace-nowrap text-[11px] font-medium text-indigo-700">Started: {formatDateTime(delivery.startedAt, '')}</p>}{completed && delivery.completedAt && <p className="mt-2 whitespace-nowrap text-[11px] font-medium text-emerald-700">{formatDateTime(delivery.completedAt, '')}</p>}</td><td className="px-6 py-4"><span className={`whitespace-nowrap rounded-full px-2.5 py-1 text-[11px] font-bold ${priorityClass[delivery.priority]}`}>{delivery.priority}</span></td><td className="whitespace-nowrap px-6 py-4 text-xs font-medium text-slate-600">{formatDateTime(delivery.estimatedDeliveryTime)}</td><td className="px-6 py-4 text-right">{action === 'START' && <button type="button" onClick={() => startDelivery(delivery.id)} disabled={starting} className="inline-flex items-center gap-1.5 rounded-xl bg-blue-600 px-3 py-2 text-xs font-bold text-white disabled:opacity-60">{starting ? <Loader2 className="animate-spin" size={14} /> : <Play size={14} />}{starting ? 'Starting...' : 'Start Delivery'}</button>}{action === 'COMPLETE' && <button type="button" onClick={() => markCompleted(delivery.id)} disabled={completing} className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-600 px-3 py-2 text-xs font-bold text-white disabled:opacity-60">{completing ? <Loader2 className="animate-spin" size={14} /> : <Check size={14} />}{completing ? 'Completing...' : 'Mark Completed'}</button>}{(action === 'COMPLETED' || action === 'DELIVERED') && <button type="button" disabled className="inline-flex cursor-not-allowed items-center gap-1.5 rounded-xl bg-emerald-100 px-3 py-2 text-xs font-bold text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300"><Check size={14} />{action === 'DELIVERED' ? 'Delivered' : 'Completed'}</button>}</td></tr>;
         })}</tbody>
       </table></div></div>
-      <div className="grid gap-4 md:hidden">{filtered.map((delivery) => <DeliveryCard key={delivery.id} id={delivery.id} customer={delivery.customerName} address={delivery.deliveryAddress} priority={delivery.priority} status={delivery.status} eta={formatDateTime(delivery.estimatedDeliveryTime)} completedAt={formatDateTime(delivery.completedAt, '')} completing={completingId === delivery.id} onComplete={markCompleted} />)}</div>
+      <div className="grid gap-4 md:hidden">{filtered.map((delivery) => <DeliveryCard key={delivery.id} id={delivery.id} customer={delivery.customerName} address={delivery.deliveryAddress} priority={delivery.priority} status={delivery.status} eta={formatDateTime(delivery.estimatedDeliveryTime)} startedAt={formatDateTime(delivery.startedAt, '')} completedAt={formatDateTime(delivery.completedAt, '')} starting={startingIds.has(delivery.id)} completing={completingIds.has(delivery.id)} onStart={startDelivery} onComplete={markCompleted} />)}</div>
     </> : <div className="card py-20 text-center"><PackageOpen className="mx-auto text-slate-300" size={44} /><h3 className="mt-4 font-bold text-slate-900">No matching deliveries</h3><p className="mt-1 text-sm text-slate-500">Try adjusting your search or filters.</p></div>}
   </div>;
 }
