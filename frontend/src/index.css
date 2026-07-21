@@ -64,3 +64,55 @@ button, a, input, select, textarea { -webkit-tap-highlight-color: transparent; }
 
 .leaflet-container { font-family: Inter, ui-sans-serif, system-ui, sans-serif; }
 .leaflet-popup-content-wrapper { border-radius: 14px; box-shadow: 0 18px 45px rgba(15,23,42,.16); }
+
+.route-numbered-marker { background: transparent; border: 0; }
+.route-numbered-marker__badge {
+  display: flex;
+  width: 36px;
+  height: 36px;
+  align-items: center;
+  justify-content: center;
+  border: 3px solid white;
+  border-radius: 50% 50% 50% 10%;
+  background: linear-gradient(135deg, #2563eb, #4f46e5);
+  box-shadow: 0 8px 20px rgba(37,99,235,.35);
+  color: white;
+  font-size: 13px;
+  font-weight: 800;
+  transform: rotate(45deg);
+}
+.route-numbered-marker__badge--warehouse { background: linear-gradient(135deg, #0f172a, #334155); box-shadow: 0 8px 20px rgba(15,23,42,.35); }
+.route-numbered-marker__badge > span { transform: rotate(-45deg); }
+
+.print-only { display: none; }
+
+@media print {
+  @page { size: A4; margin: 15mm; }
+  body { background: white !important; }
+  body * { visibility: hidden !important; }
+  .route-print-document, .route-print-document * { visibility: visible !important; }
+  .route-print-document {
+    position: absolute;
+    inset: 0;
+    display: block !important;
+    width: 100%;
+    color: #0f172a;
+    font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  }
+  .route-print-header { border-bottom: 3px solid #2563eb; padding-bottom: 18px; }
+  .route-print-header p { margin: 0 0 6px; color: #2563eb; font-size: 11px; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; }
+  .route-print-header h1 { margin: 0; font-size: 28px; }
+  .route-print-header span { display: block; margin-top: 5px; color: #64748b; font-size: 12px; }
+  .route-print-summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 20px 0 24px; }
+  .route-print-summary div { border: 1px solid #cbd5e1; border-radius: 10px; padding: 12px; break-inside: avoid; }
+  .route-print-summary span { display: block; color: #64748b; font-size: 10px; font-weight: 700; text-transform: uppercase; }
+  .route-print-summary strong { display: block; margin-top: 4px; font-size: 17px; }
+  .route-print-document h2 { margin: 0 0 12px; font-size: 18px; }
+  .route-print-stops { margin: 0; padding: 0; list-style: none; }
+  .route-print-stops li { display: grid; grid-template-columns: 30px 1fr auto; align-items: center; gap: 12px; border-bottom: 1px solid #e2e8f0; padding: 10px 0; break-inside: avoid; }
+  .route-print-stops li > span { display: flex; width: 28px; height: 28px; align-items: center; justify-content: center; border-radius: 8px; background: #2563eb; color: white; font-size: 12px; font-weight: 800; }
+  .route-print-stops strong { font-size: 12px; }
+  .route-print-stops p { margin: 3px 0 0; color: #64748b; font-size: 10px; }
+  .route-print-stops b { font-size: 11px; }
+  .route-print-document footer { margin-top: 22px; border-top: 1px solid #cbd5e1; padding-top: 10px; color: #64748b; font-size: 9px; }
+}

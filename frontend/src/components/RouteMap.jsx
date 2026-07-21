@@ -1,20 +1,17 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { MapContainer, Marker, Polyline, Popup, TileLayer, useMap } from 'react-leaflet';
 import L from 'leaflet';
-import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
-import markerIcon from 'leaflet/dist/images/marker-icon.png';
-import markerShadow from 'leaflet/dist/images/marker-shadow.png';
 import { Map, MapPin } from 'lucide-react';
 
-const defaultIcon = L.icon({
-  iconRetinaUrl: markerIcon2x,
-  iconUrl: markerIcon,
-  shadowUrl: markerShadow,
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  shadowSize: [41, 41],
-});
+function createNumberedIcon(number, isWarehouse) {
+  return L.divIcon({
+    className: 'route-numbered-marker',
+    html: `<span class="route-numbered-marker__badge${isWarehouse ? ' route-numbered-marker__badge--warehouse' : ''}"><span>${number}</span></span>`,
+    iconSize: [36, 44],
+    iconAnchor: [18, 42],
+    popupAnchor: [0, -38],
+  });
+}
 
 function isValidCoordinate(stop) {
   return Number.isFinite(Number(stop.latitude)) && Number.isFinite(Number(stop.longitude));
@@ -89,6 +86,10 @@ function RouteMap({ stops }) {
     () => positions.map(([latitude, longitude]) => `${latitude},${longitude}`).join('|'),
     [positions],
   );
+  const markerIcons = useMemo(
+    () => mappedStops.map((_, index) => createNumberedIcon(index + 1, index === 0)),
+    [mappedStops],
+  );
 
   if (positions.length === 0) {
     return (
@@ -120,13 +121,14 @@ function RouteMap({ stops }) {
         />
         <MapController positions={positions} coordinatesKey={coordinatesKey} />
         <Polyline positions={positions} pathOptions={{ color: '#2563eb', weight: 4, opacity: 0.85 }} />
-        {mappedStops.map((stop) => (
-          <Marker key={`${stop.order}-${stop.customer}`} position={[Number(stop.latitude), Number(stop.longitude)]} icon={defaultIcon}>
+        {mappedStops.map((stop, index) => (
+          <Marker key={`${stop.order}-${stop.customer}`} position={[Number(stop.latitude), Number(stop.longitude)]} icon={markerIcons[index]}>
             <Popup>
               <div className="space-y-1">
+                <p className="text-xs font-bold uppercase tracking-wide text-blue-600">{index === 0 ? 'Warehouse' : `Stop ${index}`}</p>
                 <p className="font-semibold">{stop.customer}</p>
                 <p>{stop.address}</p>
-                <p className="text-blue-600">Stop #{stop.order}</p>
+                <p className="text-blue-600">Route point #{index + 1}</p>
               </div>
             </Popup>
           </Marker>
