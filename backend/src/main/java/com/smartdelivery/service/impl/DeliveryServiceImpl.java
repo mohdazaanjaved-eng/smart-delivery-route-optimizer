@@ -78,11 +78,10 @@ public class DeliveryServiceImpl implements DeliveryService {
     @Override
     @Transactional
     public DeliveryResponse completeDelivery(Long id) {
-        log.info("Completing delivery {}", id);
-
         try {
             Delivery delivery = findDeliveryById(id);
-            log.info("Delivery id={} currentStatus={}", id, delivery.getStatus());
+            log.info("Completing delivery id={}, currentStatus={}, targetStatus={}",
+                    id, delivery.getStatus(), DeliveryStatus.COMPLETED);
 
             if (delivery.getStatus() == DeliveryStatus.COMPLETED
                     || delivery.getStatus() == DeliveryStatus.DELIVERED) {
@@ -92,16 +91,17 @@ public class DeliveryServiceImpl implements DeliveryService {
             delivery.setStatus(DeliveryStatus.COMPLETED);
             delivery.setCompletedAt(LocalDateTime.now());
 
-            log.info("Saving completed delivery id={}", id);
+            log.info("Before saveAndFlush delivery id={}, targetStatus={}, completedAt={}",
+                    id, delivery.getStatus(), delivery.getCompletedAt());
             Delivery savedDelivery = deliveryRepository.saveAndFlush(delivery);
-            log.info("Completed delivery saved id={} status={} completedAt={}",
+            log.info("After saveAndFlush delivery id={}, status={}, completedAt={}",
                     id,
                     savedDelivery.getStatus(),
                     savedDelivery.getCompletedAt());
             return toResponse(savedDelivery);
-        } catch (Exception e) {
-            log.error("Delivery completion failed", e);
-            throw e;
+        } catch (Exception exception) {
+            log.error("Delivery completion failed for id={}", id, exception);
+            throw exception;
         }
     }
 

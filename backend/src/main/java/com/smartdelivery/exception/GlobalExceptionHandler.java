@@ -23,6 +23,7 @@ public class GlobalExceptionHandler {
             DuplicateResourceException exception,
             HttpServletRequest request
     ) {
+        log.warn("Conflict for method={} path={}", request.getMethod(), request.getRequestURI(), exception);
         return buildErrorResponse(HttpStatus.CONFLICT, exception.getMessage(), request.getRequestURI(), null);
     }
 
@@ -39,6 +40,8 @@ public class GlobalExceptionHandler {
             ResourceNotFoundException exception,
             HttpServletRequest request
     ) {
+        log.warn("Resource not found for method={} path={}",
+                request.getMethod(), request.getRequestURI(), exception);
         return buildErrorResponse(HttpStatus.NOT_FOUND, exception.getMessage(), request.getRequestURI(), null);
     }
 
