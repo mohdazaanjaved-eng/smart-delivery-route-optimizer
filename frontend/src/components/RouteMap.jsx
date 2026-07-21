@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { MapContainer, Marker, Polyline, Popup, TileLayer, useMap, ZoomControl } from 'react-leaflet';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { MapContainer, Marker, Polyline, Popup, TileLayer, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
 import markerIcon from 'leaflet/dist/images/marker-icon.png';
@@ -20,28 +20,75 @@ function isValidCoordinate(stop) {
   return Number.isFinite(Number(stop.latitude)) && Number.isFinite(Number(stop.longitude));
 }
 
-function FitBounds({ positions }) {
+function MapController({ positions, coordinatesKey }) {
   const map = useMap();
+  const positionsRef = useRef(positions);
+  const resizeFrameRef = useRef();
+
+  positionsRef.current = positions;
 
   useEffect(() => {
-    if (positions.length === 0) {
+    map.zoomControl.setPosition('topright');
+  }, [map]);
+
+  useEffect(() => {
+    if (!coordinatesKey) {
       return;
     }
 
-    const bounds = L.latLngBounds(positions);
+    const bounds = L.latLngBounds(positionsRef.current);
     map.fitBounds(bounds, {
       padding: [32, 32],
       maxZoom: 14,
     });
-  }, [map, positions]);
+  }, [coordinatesKey, map]);
+
+  useEffect(() => {
+    const container = map.getContainer();
+    let previousWidth = container.clientWidth;
+    let previousHeight = container.clientHeight;
+
+    const invalidateMapSize = () => {
+      cancelAnimationFrame(resizeFrameRef.current);
+      resizeFrameRef.current = requestAnimationFrame(() => {
+        map.invalidateSize({ debounceMoveend: true, pan: false });
+      });
+    };
+
+    invalidateMapSize();
+
+    const resizeObserver = new ResizeObserver((entries) => {
+      const { width, height } = entries[0].contentRect;
+
+      if (width > 0 && height > 0 && (width !== previousWidth || height !== previousHeight)) {
+        previousWidth = width;
+        previousHeight = height;
+        invalidateMapSize();
+      }
+    });
+
+    resizeObserver.observe(container);
+
+    return () => {
+      resizeObserver.disconnect();
+      cancelAnimationFrame(resizeFrameRef.current);
+    };
+  }, [map]);
 
   return null;
 }
 
 function RouteMap({ stops }) {
   const [tilesLoading, setTilesLoading] = useState(true);
-  const mappedStops = stops.filter(isValidCoordinate);
-  const positions = mappedStops.map((stop) => [Number(stop.latitude), Number(stop.longitude)]);
+  const mappedStops = useMemo(() => stops.filter(isValidCoordinate), [stops]);
+  const positions = useMemo(
+    () => mappedStops.map((stop) => [Number(stop.latitude), Number(stop.longitude)]),
+    [mappedStops],
+  );
+  const coordinatesKey = useMemo(
+    () => positions.map(([latitude, longitude]) => `${latitude},${longitude}`).join('|'),
+    [positions],
+  );
 
   if (positions.length === 0) {
     return (
@@ -56,14 +103,22 @@ function RouteMap({ stops }) {
         <div><h3 className="font-bold text-slate-950">Live route map</h3><p className="mt-1 text-xs text-slate-500">Automatically fitted to all optimized stops.</p></div>
         <div className="flex items-center gap-4 text-xs font-medium text-slate-500"><span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-blue-600"/>Route</span><span className="flex items-center gap-1.5"><MapPin size={14} className="text-red-500"/>Stop</span></div>
       </div>
-      <div className="relative"><MapContainer center={positions[0]} zoom={12} zoomControl={false} className="h-[480px] w-full">
-        <ZoomControl position="topright" />
+      <div className="relative"><MapContainer
+        center={positions[0]}
+        zoom={12}
+        scrollWheelZoom={true}
+        zoomControl={true}
+        dragging={true}
+        doubleClickZoom={true}
+        touchZoom={true}
+        className="h-[480px] w-full"
+      >
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           eventHandlers={{ loading: () => setTilesLoading(true), load: () => setTilesLoading(false) }}
         />
-        <FitBounds positions={positions} />
+        <MapController positions={positions} coordinatesKey={coordinatesKey} />
         <Polyline positions={positions} pathOptions={{ color: '#2563eb', weight: 4, opacity: 0.85 }} />
         {mappedStops.map((stop) => (
           <Marker key={`${stop.order}-${stop.customer}`} position={[Number(stop.latitude), Number(stop.longitude)]} icon={defaultIcon}>
