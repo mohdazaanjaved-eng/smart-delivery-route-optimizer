@@ -50,11 +50,16 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        List<String> allowedOrigins = Stream.of("http://localhost:5173", frontendUrl)
+        List<String> allowedOriginPatterns = Stream.concat(
+                        Stream.of("http://localhost:5173", "https://*.vercel.app"),
+                        Stream.of(frontendUrl.split(","))
+                )
+                .map(String::trim)
                 .filter(origin -> origin != null && !origin.isBlank())
+                .map(origin -> origin.endsWith("/") ? origin.substring(0, origin.length() - 1) : origin)
                 .distinct()
                 .toList();
-        configuration.setAllowedOrigins(allowedOrigins);
+        configuration.setAllowedOriginPatterns(allowedOriginPatterns);
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept"));
         configuration.setAllowCredentials(true);
