@@ -10,6 +10,7 @@ import com.smartdelivery.exception.ResourceNotFoundException;
 import com.smartdelivery.repository.DeliveryRepository;
 import com.smartdelivery.service.DeliveryService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,6 +19,7 @@ import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class DeliveryServiceImpl implements DeliveryService {
 
     private final DeliveryRepository deliveryRepository;
@@ -76,17 +78,31 @@ public class DeliveryServiceImpl implements DeliveryService {
     @Override
     @Transactional
     public DeliveryResponse completeDelivery(Long id) {
-        Delivery delivery = findDeliveryById(id);
+        log.info("Completing delivery id={}", id);
 
-        if (delivery.getStatus() == DeliveryStatus.COMPLETED
-                || delivery.getStatus() == DeliveryStatus.DELIVERED) {
-            throw new DuplicateResourceException("Delivery is already completed");
+        try {
+            Delivery delivery = findDeliveryById(id);
+            log.info("Delivery id={} currentStatus={}", id, delivery.getStatus());
+
+            if (delivery.getStatus() == DeliveryStatus.COMPLETED
+                    || delivery.getStatus() == DeliveryStatus.DELIVERED) {
+                throw new DuplicateResourceException("Delivery is already completed");
+            }
+
+            delivery.setStatus(DeliveryStatus.COMPLETED);
+            delivery.setCompletedAt(LocalDateTime.now());
+
+            log.info("Saving completed delivery id={}", id);
+            Delivery savedDelivery = deliveryRepository.saveAndFlush(delivery);
+            log.info("Completed delivery saved id={} status={} completedAt={}",
+                    id,
+                    savedDelivery.getStatus(),
+                    savedDelivery.getCompletedAt());
+            return toResponse(savedDelivery);
+        } catch (Exception exception) {
+            log.error("Failed to complete delivery id={}", id, exception);
+            throw exception;
         }
-
-        delivery.setStatus(DeliveryStatus.COMPLETED);
-        delivery.setCompletedAt(LocalDateTime.now());
-
-        return toResponse(deliveryRepository.save(delivery));
     }
 
     @Override

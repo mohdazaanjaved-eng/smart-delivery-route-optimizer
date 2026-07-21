@@ -26,13 +26,13 @@ class DeliveryServiceImplCompletionTests {
     void marksPendingDeliveryAsCompleted() {
         Delivery delivery = Delivery.builder().id(1L).status(DeliveryStatus.PENDING).build();
         when(deliveryRepository.findById(1L)).thenReturn(Optional.of(delivery));
-        when(deliveryRepository.save(delivery)).thenReturn(delivery);
+        when(deliveryRepository.saveAndFlush(delivery)).thenReturn(delivery);
 
         DeliveryResponse response = deliveryService.completeDelivery(1L);
 
         assertEquals(DeliveryStatus.COMPLETED, response.status());
         assertNotNull(response.completedAt());
-        verify(deliveryRepository).save(delivery);
+        verify(deliveryRepository).saveAndFlush(delivery);
     }
 
     @Test
@@ -41,6 +41,6 @@ class DeliveryServiceImplCompletionTests {
         when(deliveryRepository.findById(2L)).thenReturn(Optional.of(delivery));
 
         assertThrows(DuplicateResourceException.class, () -> deliveryService.completeDelivery(2L));
-        verify(deliveryRepository, never()).save(delivery);
+        verify(deliveryRepository, never()).saveAndFlush(delivery);
     }
 }
